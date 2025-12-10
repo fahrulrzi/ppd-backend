@@ -3,8 +3,13 @@ from . import db
 from .models import User
 import jwt
 from functools import wraps
+from datetime import date
 
 bp = Blueprint('user', __name__)
+
+def calculate_age(born):
+    today = date.today()
+    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
 
 def token_required(f):
     @wraps(f)
@@ -22,15 +27,16 @@ def token_required(f):
         return f(user, *args, **kwargs)
     return decorated
 
-@bp.route('/profile', methods=['GET'])
+@bp.route('/profile', methods=['GET', 'OPTIONS'])
 @token_required
 def profile(user):
+    age = calculate_age(user.date_of_birth) if user.date_of_birth else None
     user_data = {
         'id': user.id,
         'username': user.username,
         'full_name': user.full_name,
         'date_of_birth': user.date_of_birth.isoformat() if user.date_of_birth else None,
-        'age': (db.func.date_part('year', db.func.age(db.func.current_date(), user.date_of_birth)) if user.date_of_birth else None),
+        'age': age,
         'blood_type': user.blood_type,
         'gender': user.gender,
         'created_at': user.created_at.isoformat()
