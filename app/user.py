@@ -24,8 +24,7 @@ def token_required(f):
 
 @bp.route('/profile', methods=['GET'])
 @token_required
-def profile():
-    user = request.user
+def profile(user):
     user_data = {
         'id': user.id,
         'username': user.username,
