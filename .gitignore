@@ -1,18 +1,44 @@
-venv/
-.env
+# Python
 __pycache__/
-*.pyc
-.DS_Store
-.idea/
-.vscode/
-*.log
-coverage/
-htmlcov/
-*.sqlite3
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Flask
 instance/
-*.egg-info/
-dist/
-build/
-*.tar.gz
-*.whl
-pip-wheel-metadata/
+.webassets-cache
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Models (jangan upload model besar ke git)
+*.pkl
+*.joblib
+*.h5
+*.pt
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite3
+
+# Migrations (optional - bisa di-commit atau tidak)
+# migrations/
