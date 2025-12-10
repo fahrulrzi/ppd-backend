@@ -76,8 +76,10 @@ def create_app():
     # ===== REGISTER BLUEPRINTS =====
     from .auth import bp as auth_bp
     from .predict import bp as predict_bp
+    from .user import bp as user_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(predict_bp, url_prefix='/api')
+    app.register_blueprint(user_bp, url_prefix='/user')
     
     return app
