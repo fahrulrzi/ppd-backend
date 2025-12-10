@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+psycopg2-binary
+python-dotenv
+PyJWT
+werkzeug
+joblib
+scikit-learn==1.6.1
+gunicorn
+python-dotenv
+marshmallow        # optional: input validation
