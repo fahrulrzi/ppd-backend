@@ -15,16 +15,55 @@ def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
+        
+        # Ambil token dari header
         if 'Authorization' in request.headers:
-            token = request.headers['Authorization'].replace('Bearer ', '')
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith('Bearer '):
+                token = auth_header.replace('Bearer ', '')
+            else:
+                token = auth_header
+        
+        # Debug: log token status
         if not token:
+            current_app.logger.warning("No token provided in request")
             return jsonify({'msg':'token missing'}), 401
+        
         try:
-            data = jwt.decode(token, current_app.config['JWT_SECRET'], algorithms=['HS256'])
-            user = User.query.get(data['sub'])
+            # Decode token dengan timezone-aware datetime
+            data = jwt.decode(
+                token, 
+                current_app.config['JWT_SECRET'], 
+                algorithms=['HS256'],
+                options={"verify_exp": True} 
+            )
+            
+            # Cek apakah 'sub' ada dalam payload
+            if 'sub' not in data:
+                current_app.logger.error("Token missing 'sub' claim")
+                return jsonify({'msg':'invalid token structure'}), 401
+            
+            user_id = int(data['sub'])
+            
+            user = User.query.get(user_id)
+            if user is None:
+                current_app.logger.error(f"User with id {data['sub']} not found")
+                return jsonify({'msg':'user not found'}), 401
+            
+            current_app.logger.info(f"User {user.username} authenticated successfully")
+            
+        except jwt.ExpiredSignatureError:
+            current_app.logger.warning("Token has expired")
+            return jsonify({'msg':'token expired'}), 401
+        except jwt.InvalidTokenError as e:
+            current_app.logger.error(f"Invalid token: {str(e)}")
+            return jsonify({'msg':'token invalid', 'err': str(e)}), 401
         except Exception as e:
-            return jsonify({'msg':'token invalid', 'err':str(e)}), 401
+            current_app.logger.error(f"Token verification failed: {str(e)}")
+            return jsonify({'msg':'token verification failed', 'err': str(e)}), 401
+        
         return f(user, *args, **kwargs)
+    
     return decorated
 
 @bp.route('/profile', methods=['GET', 'OPTIONS'])
