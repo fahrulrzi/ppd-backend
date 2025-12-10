@@ -16,6 +16,9 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = None
         
+        if request.method == 'OPTIONS':
+            return jsonify({'status': 'ok'}), 200
+
         # Ambil token dari header
         if 'Authorization' in request.headers:
             auth_header = request.headers['Authorization']
