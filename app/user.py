@@ -36,3 +36,23 @@ def profile():
         'created_at': user.created_at.isoformat()
     }
     return jsonify(user_data)
+
+@bp.route('/dashboard', methods=['GET'])
+@token_required
+def dashboard(user):
+    total_predictions = user.predictions.count()
+    latest_prediction = user.predictions.order_by(db.desc('created_at')).first()
+    
+    latest_prediction_data = {
+        'id': latest_prediction.id,
+        'input_json': latest_prediction.input_json,
+        'output_json': latest_prediction.output_json,
+        'created_at': latest_prediction.created_at.isoformat()
+    } if latest_prediction else None
+    
+    dashboard_data = {
+        'total_predictions': total_predictions,
+        'latest_prediction': latest_prediction_data
+    }
+    
+    return jsonify(dashboard_data)
