@@ -10,4 +10,4 @@ joblib
 scikit-learn==1.6.1
 gunicorn
 python-dotenv
-marshmallow        # optional: input validation
+marshmallow
