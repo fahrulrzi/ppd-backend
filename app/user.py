@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 from . import db
-from .models import User
+from .models import User, Prediction
 import jwt
 from functools import wraps
 from datetime import date
@@ -62,3 +62,33 @@ def dashboard(user):
     }
     
     return jsonify(dashboard_data)
+
+@bp.route('/history', methods=['GET', 'OPTIONS'])
+@token_required
+def history(user):
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
+    pagination = user.predictions.order_by(db.desc(Prediction.created_at)).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+
+    history_data = []
+    for pred in pagination.items:
+        history_data.append({
+            'id': pred.id,
+            'input_json': pred.input_json,
+            'output_json': pred.output_json,
+            'created_at': pred.created_at.isoformat()
+        })
+
+    return jsonify({
+        'status': 'success',
+        'current_page': page,
+        'total_pages': pagination.pages,
+        'total_items': pagination.total,
+        'history': history_data
+    }), 200
