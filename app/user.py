@@ -31,6 +31,7 @@ def profile():
         'username': user.username,
         'full_name': user.full_name,
         'date_of_birth': user.date_of_birth.isoformat() if user.date_of_birth else None,
+        'age': (db.func.date_part('year', db.func.age(db.func.current_date(), user.date_of_birth)) if user.date_of_birth else None),
         'blood_type': user.blood_type,
         'gender': user.gender,
         'created_at': user.created_at.isoformat()
