@@ -74,63 +74,64 @@ def token_required(f):
 def predict(user):
     payload = request.get_json(silent=True)
     if not payload:
-        return jsonify({'msg':'invalid json'}), 400
-    
-    row = None
+        return jsonify({'msg': 'invalid json'}), 400
+
     if 'features' in payload:
         features = payload['features']
         if not isinstance(features, list):
-            return jsonify({'msg':'features must be a list'}), 400
+            return jsonify({'msg': 'features must be a list'}), 400
         if len(features) != len(REQUIRED_COLS):
-            return jsonify({'msg':f'features must have length {len(REQUIRED_COLS)}'}), 400
+            return jsonify({'msg': f'features must have length {len(REQUIRED_COLS)}'}), 400
         row = dict(zip(REQUIRED_COLS, features))
+
     elif 'row' in payload:
         row = payload['row']
         if not isinstance(row, dict):
-            return jsonify({'msg':'row must be an object/dict'}), 400
+            return jsonify({'msg': 'row must be an object/dict'}), 400
     else:
-        return jsonify({'msg':'provide features (list) or row (dict)'}), 400
-    
+        return jsonify({'msg': 'provide features (list) or row (dict)'}), 400
+
     missing = [c for c in REQUIRED_COLS if c not in row]
     if missing:
-        return jsonify({'msg':'missing columns', 'missing': missing}), 400
-    
+        return jsonify({'msg': 'missing columns', 'missing': missing}), 400
+
     try:
-        feat_list = []
-        for c in REQUIRED_COLS:
-            v = row[c]
-            feat_list.append(float(v))
-        X = np.array([feat_list])  # 2D
+        X = pd.DataFrame(
+            [[float(row[c]) for c in REQUIRED_COLS]],
+            columns=REQUIRED_COLS
+        )
     except Exception as e:
-        return jsonify({'msg':'invalid feature values', 'err': str(e)}), 400
-    
-    model = getattr(current_app, "model", None)
-    if model is None:
-        return jsonify({'msg':'model not loaded on server'}), 500
-    
-    preprocessor = getattr(current_app, "preprocessor", None)
+        return jsonify({'msg': 'invalid feature values', 'err': str(e)}), 400
+
+    pipeline = getattr(current_app, "pipeline", None)
+    if pipeline is None:
+        return jsonify({'msg': 'pipeline not loaded on server'}), 500
+
     try:
-        if preprocessor is not None:
-            X_proc = preprocessor.transform(X)
-        else:
-            X_proc = X
-        
-        pred = model.predict(X_proc)
-        
+        pred = pipeline.predict(X)
+
         prob = None
-        if hasattr(model, "predict_proba"):
-            prob = model.predict_proba(X_proc).tolist()
-        
-        output = {'prediction': pred.tolist(), 'probability': prob}
+        if hasattr(pipeline, "predict_proba"):
+            prob = pipeline.predict_proba(X).tolist()
+
+        output = {
+            'prediction': pred.tolist(),
+            'probability': prob
+        }
+
     except Exception as e:
-        return jsonify({'msg':'prediction failed', 'err': str(e)}), 500
-    
+        return jsonify({'msg': 'prediction failed', 'err': str(e)}), 500
+
     try:
-        rec = Prediction(user_id=user.id, input_json=row, output_json=output)
+        rec = Prediction(
+            user_id=user.id,
+            input_json=row,
+            output_json=output
+        )
         db.session.add(rec)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
         current_app.logger.error("failed to save prediction: %s", e)
-    
+
     return jsonify(output), 200

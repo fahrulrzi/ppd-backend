@@ -38,16 +38,16 @@ def create_app():
     # ===== LOAD MODEL =====
     # Load model once at startup with error handling
     try:
-        model_path = os.path.join(app.root_path, 'ml', 'model.joblib')
-        if os.path.exists(model_path):
-            app.model = load(model_path)
-            print(f"✅ Model loaded successfully from {model_path}")
+        pipeline_path = os.path.join(app.root_path, 'ml', 'rf_pipeline.joblib')
+        if os.path.exists(pipeline_path):
+            app.pipeline = load(pipeline_path)
+            print(f"✅ Pipeline loaded successfully from {pipeline_path}")
         else:
-            print(f"⚠️  Model file not found at {model_path}")
-            app.model = None
+            print(f"⚠️  Pipeline file not found at {pipeline_path}")
+            app.pipeline = None
     except Exception as e:
-        print(f"❌ Error loading model: {e}")
-        app.model = None
+        print(f"❌ Error loading pipeline: {e}")
+        app.pipeline = None
     
     # ===== HEALTH CHECK ENDPOINTS =====
     @app.route('/')
