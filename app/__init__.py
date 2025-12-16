@@ -38,7 +38,7 @@ def create_app():
     # ===== LOAD MODEL =====
     # Load model once at startup with error handling
     try:
-        pipeline_path = os.path.join(app.root_path, 'ml', 'rf_pipeline.joblib')
+        pipeline_path = os.path.join(app.root_path, 'ml', 'rf_model.joblib')
         if os.path.exists(pipeline_path):
             app.pipeline = load(pipeline_path)
             print(f"✅ Pipeline loaded successfully from {pipeline_path}")
