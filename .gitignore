@@ -29,7 +29,7 @@ Thumbs.db
 
 # Models (jangan upload model besar ke git)
 *.pkl
-*.joblib
+# *.joblib
 *.h5
 *.pt
 
