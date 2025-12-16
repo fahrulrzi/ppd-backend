@@ -4,6 +4,7 @@ from .models import Prediction, User
 import jwt
 from functools import wraps
 import numpy as np
+import pandas as pd
 import datetime
 
 bp = Blueprint('predict', __name__)
